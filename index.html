@@ -1,0 +1,455 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>NeverLose - Birthday Event</title>
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Lucide Icons -->
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800&display=swap');
+        
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #050505;
+            color: #ffffff;
+            overflow-x: hidden;
+            user-select: none;
+        }
+
+        .wheel-shadow {
+            filter: drop-shadow(0 0 15px rgba(0, 163, 255, 0.3));
+        }
+
+        /* Animations */
+        @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+        @keyframes zoomIn { from { transform: scale(0.95); opacity: 0; } to { transform: scale(1); opacity: 1; } }
+        
+        .animate-fade-in { animation: fadeIn 0.3s ease-out forwards; }
+        .animate-zoom-in { animation: zoomIn 0.3s ease-out forwards; }
+
+        ::-webkit-scrollbar { width: 8px; }
+        ::-webkit-scrollbar-track { background: #0f0f0f; }
+        ::-webkit-scrollbar-thumb { background: #00a3ff; border-radius: 4px; }
+    </style>
+</head>
+<body class="min-h-screen flex flex-col relative selection:bg-[#00a3ff] selection:text-white">
+
+    <!-- Background Decor -->
+    <div class="fixed inset-0 overflow-hidden pointer-events-none z-0">
+        <div class="absolute top-[-10%] left-[-10%] w-[50vw] h-[50vw] max-w-[500px] max-h-[500px] bg-[#00a3ff] rounded-full mix-blend-screen filter blur-[128px] opacity-10"></div>
+        <div class="absolute bottom-[-10%] right-[-10%] w-[50vw] h-[50vw] max-w-[500px] max-h-[500px] bg-blue-900 rounded-full mix-blend-screen filter blur-[128px] opacity-10"></div>
+    </div>
+
+    <!-- Main Container -->
+    <div class="relative z-10 container mx-auto px-4 py-8 flex-grow flex flex-col max-w-5xl h-full">
+        
+        <!-- Header -->
+        <header class="flex items-center justify-between mb-8 w-full max-w-xl mx-auto">
+            <div class="flex items-center gap-2">
+                <div class="w-8 h-8 bg-gradient-to-br from-[#00a3ff] to-blue-700 rounded flex items-center justify-center font-bold text-lg shadow-lg shadow-blue-900/50">N</div>
+                <span class="font-bold text-xl tracking-wide">NEVERLOSE</span>
+            </div>
+            <div id="spins-counter-container" class="bg-[#1a1a1a] px-4 py-1.5 rounded-full text-xs font-mono text-gray-400 border border-[#333] shadow-md">
+                ОСТАЛОСЬ: <span id="spins-left" class="text-white font-bold">3</span>
+            </div>
+        </header>
+
+        <main id="main-content" class="flex-grow flex flex-col items-center justify-center text-center w-full max-w-xl mx-auto">
+            
+            <!-- SCREENS will be injected here via JS -->
+            
+            <!-- SCREEN 1: WHEEL GAME -->
+            <div id="screen-wheel" class="w-full flex flex-col items-center transition-opacity duration-300">
+                <div class="mb-8 space-y-4">
+                    <div class="inline-block px-4 py-1.5 rounded-full bg-blue-500/10 text-[#00a3ff] text-xs font-bold tracking-wider mb-2 border border-blue-500/20 shadow-[0_0_15px_rgba(0,163,255,0.1)]">
+                        ДЕНЬ РОЖДЕНИЯ
+                    </div>
+                    <h1 class="text-4xl md:text-5xl font-extrabold leading-tight tracking-tight">
+                        РУЛЕТКА <br/> <span class="text-transparent bg-clip-text bg-gradient-to-r from-[#00a3ff] to-white drop-shadow-[0_0_10px_rgba(0,163,255,0.5)]">УДАЧИ</span>
+                    </h1>
+                    <p class="text-gray-400 text-sm md:text-base max-w-xs md:max-w-md mx-auto leading-relaxed">
+                        В честь праздника мы дарим <span class="text-white font-bold">3 бесплатных спина</span>. Испытай удачу и выиграй подписку или инвайт!
+                    </p>
+                </div>
+
+                <!-- Wheel Component -->
+                <div class="mb-10 transform scale-100 md:scale-110 transition-transform relative py-8">
+                    <!-- Pointer -->
+                    <div class="absolute top-2 left-1/2 -translate-x-1/2 z-20 text-white drop-shadow-lg">
+                        <i data-lucide="chevron-down" width="48" height="48" fill="#ffffff"></i>
+                    </div>
+                    
+                    <!-- Wheel Body -->
+                    <div class="wheel-shadow relative rounded-full border-4 border-[#1a1a1a] bg-[#1a1a1a] shadow-2xl overflow-hidden w-[320px] h-[320px]">
+                        <div id="wheel-spinner" class="w-full h-full" style="transform: rotate(0deg); transition: transform 5s cubic-bezier(0.15, 0, 0.15, 1);">
+                            <!-- SVGs injected by JS -->
+                            <svg id="wheel-svg" viewBox="0 0 100 100" class="absolute top-0 left-0 w-full h-full transform rotate-[90deg] md:rotate-0"></svg>
+                            <div id="wheel-labels" class="absolute top-0 left-0 w-full h-full"></div>
+                        </div>
+                        <!-- Center Hub -->
+                        <div class="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-12 h-12 bg-zinc-900 rounded-full border-4 border-[#00a3ff] flex items-center justify-center shadow-lg z-10">
+                            <span class="text-[#00a3ff] font-bold text-xs">NL</span>
+                        </div>
+                    </div>
+                </div>
+
+                <button id="spin-btn" class="relative w-full max-w-xs py-4 rounded-xl font-bold text-lg tracking-wider uppercase transition-all duration-300 bg-[#00a3ff] text-white hover:bg-[#008bd9] hover:shadow-[0_0_30px_rgba(0,163,255,0.4)] hover:-translate-y-1 active:translate-y-0 border border-blue-400/20">
+                    КРУТИТЬ
+                </button>
+                
+                <div class="mt-8 flex gap-6 text-xs text-gray-500 font-mono justify-center">
+                    <div class="flex items-center gap-2 bg-[#111] px-3 py-1.5 rounded-lg border border-[#222]">
+                        <i data-lucide="gift" width="14" class="text-[#00a3ff]"></i> <span>ПРИЗОВ: 5</span>
+                    </div>
+                    <div class="flex items-center gap-2 bg-[#111] px-3 py-1.5 rounded-lg border border-[#222]">
+                        <i data-lucide="lock" width="14" class="text-[#00a3ff]"></i> <span>100% БЕЗОПАСНО</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- SCREEN 2: CLAIM PRIZE -->
+            <div id="screen-claim" class="hidden w-full max-w-md bg-[#111] border border-[#222] rounded-3xl p-8 md:p-10 animate-zoom-in shadow-2xl shadow-blue-900/10">
+                <div class="w-20 h-20 bg-gradient-to-br from-green-500/20 to-green-900/20 rounded-full flex items-center justify-center mx-auto mb-6 text-green-500 shadow-[0_0_20px_rgba(34,197,94,0.2)]">
+                    <i data-lucide="gift" width="40" height="40"></i>
+                </div>
+                
+                <h2 class="text-3xl font-bold text-white mb-3">ЗАБЕРИТЕ ИНВАЙТ</h2>
+                <p class="text-gray-400 text-sm mb-8 leading-relaxed">
+                    Поздравляем! Вы выиграли <strong class="text-white">Invite Fatality.win</strong>. <br/>Для получения кода свяжитесь с нами.
+                </p>
+
+                <div class="bg-[#1a1a1a] rounded-2xl p-5 mb-6 border border-[#333] relative overflow-hidden group">
+                        <div class="absolute top-0 left-0 w-1 h-full bg-red-500 animate-pulse"></div>
+                        <div class="flex items-center justify-between mb-2">
+                            <span class="text-gray-500 text-xs uppercase font-bold tracking-wider">Осталось времени</span>
+                            <i data-lucide="timer" width="16" class="text-red-500 animate-pulse"></i>
+                        </div>
+                        <div id="timer-display" class="text-5xl font-mono font-bold text-center text-white tracking-widest tabular-nums group-hover:scale-105 transition-transform duration-300">
+                            15:00
+                        </div>
+                </div>
+
+                <div class="space-y-4">
+                        <a 
+                        href="https://t.me/@durov" 
+                        target="_blank" 
+                        rel="noopener noreferrer"
+                        class="flex items-center justify-center gap-3 w-full py-4 rounded-xl bg-[#229ED9] text-white font-bold hover:bg-[#1e8bc0] hover:shadow-[0_0_20px_rgba(34,158,217,0.4)] transition-all hover:-translate-y-0.5"
+                        >
+                        <i data-lucide="send" width="20"></i>
+                        НАПИСАТЬ В TELEGRAM
+                        </a>
+                        <p class="text-[10px] text-gray-600">
+                            *Если вы не напишете в течение времени, приз сгорит.
+                        </p>
+                </div>
+            </div>
+
+        </main>
+        
+        <!-- Footer -->
+        <footer class="mt-8 pb-4 text-center text-[10px] text-gray-700 flex flex-col items-center gap-2">
+            <p>&copy; 2023 NeverLose Software. All rights reserved. <br/> Not affiliated with Fatality.win directly.</p>
+            <button id="reset-btn" class="opacity-0 hover:opacity-100 transition-opacity p-2 text-gray-500 flex items-center gap-1 cursor-pointer" title="Сброс">
+                <i data-lucide="refresh-cw" width="12"></i> Сброс
+            </button>
+        </footer>
+    </div>
+
+    <!-- Modal -->
+    <div id="modal-overlay" class="hidden fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm animate-fade-in">
+        <div class="bg-[#111] border border-[#333] rounded-2xl p-8 max-w-sm w-full text-center shadow-2xl transform transition-all scale-100">
+            <h2 id="modal-title" class="text-2xl font-bold mb-4 text-gray-400">Не повезло...</h2>
+            
+            <div class="mb-6">
+                <p class="text-gray-400 text-sm mb-2">Вы выиграли:</p>
+                <p id="modal-prize-name" class="text-3xl font-black uppercase tracking-wider text-zinc-400">НИЧЕГО</p>
+            </div>
+
+            <div id="modal-grand-msg" class="hidden text-left bg-red-900/20 border border-red-500/30 p-4 rounded-lg mb-6">
+                <p class="text-red-400 text-sm font-semibold mb-1">⚠️ ВНИМАНИЕ</p>
+                <p class="text-gray-300 text-xs">
+                    Для активации инвайта Fatality.win, необходимо написать нам в Telegram в течение 15 минут.
+                </p>
+            </div>
+            
+            <p id="modal-retry-msg" class="text-gray-500 text-sm mb-6">Попробуйте еще раз! У вас еще есть попытки.</p>
+
+            <button id="modal-btn" class="w-full py-3 px-6 rounded-lg bg-white text-black font-bold hover:bg-gray-200 transition-colors">
+                КРУТИТЬ ЕЩЕ
+            </button>
+        </div>
+    </div>
+
+    <script>
+        // CONFIG
+        const PRIZES = [
+            { id: 'NOTHING', label: 'НИЧЕГО', color: '#27272a', textColor: '#a1a1aa' },
+            { id: 'SUB_1', label: '1 ДЕНЬ', color: '#00a3ff', textColor: '#ffffff' },
+            { id: 'SUB_30', label: '30 ДНЕЙ', color: '#0047AB', textColor: '#ffffff' },
+            { id: 'INVITE', label: 'INVITE FT', color: '#ef4444', textColor: '#ffffff' },
+            { id: 'SUB_14', label: '14 ДНЕЙ', color: '#0ea5e9', textColor: '#ffffff' },
+        ];
+        const STORAGE_KEY = 'neverlose_promo_v_html';
+        const INITIAL_TIME_SECONDS = 15 * 60;
+
+        // STATE
+        let state = {
+            spinsLeft: 3,
+            hasWonInvite: false,
+            winTimestamp: null,
+            completedSpins: 0
+        };
+        let isSpinning = false;
+        let currentRotation = 0;
+        let timerInterval = null;
+
+        // DOM ELEMENTS
+        const els = {
+            spinsCounterContainer: document.getElementById('spins-counter-container'),
+            spinsLeft: document.getElementById('spins-left'),
+            screenWheel: document.getElementById('screen-wheel'),
+            screenClaim: document.getElementById('screen-claim'),
+            wheelSpinner: document.getElementById('wheel-spinner'),
+            wheelSvg: document.getElementById('wheel-svg'),
+            wheelLabels: document.getElementById('wheel-labels'),
+            spinBtn: document.getElementById('spin-btn'),
+            timerDisplay: document.getElementById('timer-display'),
+            modal: document.getElementById('modal-overlay'),
+            modalTitle: document.getElementById('modal-title'),
+            modalPrizeName: document.getElementById('modal-prize-name'),
+            modalGrandMsg: document.getElementById('modal-grand-msg'),
+            modalRetryMsg: document.getElementById('modal-retry-msg'),
+            modalBtn: document.getElementById('modal-btn'),
+            resetBtn: document.getElementById('reset-btn')
+        };
+
+        // --- INIT ---
+        function init() {
+            // Initialize Lucide Icons
+            lucide.createIcons();
+            
+            // Draw Wheel
+            drawWheel();
+
+            // Load State
+            const saved = localStorage.getItem(STORAGE_KEY);
+            if (saved) {
+                try {
+                    state = JSON.parse(saved);
+                } catch(e) { console.error(e); }
+            }
+
+            updateUI();
+            
+            // Setup Timer if needed
+            if (state.hasWonInvite && state.winTimestamp) {
+                startTimer();
+            }
+
+            // Bind Events
+            els.spinBtn.addEventListener('click', spin);
+            els.modalBtn.addEventListener('click', closeModal);
+            els.resetBtn.addEventListener('click', resetProgress);
+        }
+
+        // --- WHEEL DRAWING ---
+        function drawWheel() {
+            const numSegments = PRIZES.length;
+            const segmentAngle = 360 / numSegments;
+            
+            // Generate Paths
+            els.wheelSvg.innerHTML = PRIZES.map((prize, index) => {
+                const startAngle = (index * segmentAngle) - 90;
+                const endAngle = ((index + 1) * segmentAngle) - 90;
+                
+                // SVG Arc math
+                const x1 = 50 + 50 * Math.cos(Math.PI * startAngle / 180);
+                const y1 = 50 + 50 * Math.sin(Math.PI * startAngle / 180);
+                const x2 = 50 + 50 * Math.cos(Math.PI * endAngle / 180);
+                const y2 = 50 + 50 * Math.sin(Math.PI * endAngle / 180);
+                
+                const d = `M 50 50 L ${x1} ${y1} A 50 50 0 0 1 ${x2} ${y2} Z`;
+                return `<path d="${d}" fill="${prize.color}" stroke="#1a1a1a" stroke-width="0.5" />`;
+            }).join('');
+
+            // Generate Labels
+            els.wheelLabels.innerHTML = PRIZES.map((prize, index) => {
+                const angle = (index * segmentAngle) + (segmentAngle / 2);
+                return `
+                    <div style="position: absolute; top: 0; left: 0; width: 100%; height: 100%; display: flex; align-items: center; justify-content: center; transform: rotate(${angle}deg); pointer-events: none;">
+                        <span style="position: absolute; transform: translateY(-106px) rotate(90deg); color: ${prize.textColor}; font-size: 10px; font-weight: bold;">
+                            ${prize.label}
+                        </span>
+                    </div>
+                `;
+            }).join('');
+        }
+
+        // --- LOGIC ---
+        function spin() {
+            if (state.spinsLeft <= 0 || isSpinning) return;
+            
+            isSpinning = true;
+            updateSpinButtonState();
+
+            // RIGGED LOGIC
+            // Index 0 = NOTHING
+            // Index 3 = INVITE FT
+            let targetIndex = 0; // Default Nothing
+            
+            if (state.spinsLeft === 3) targetIndex = 0;
+            else if (state.spinsLeft === 2) targetIndex = 0;
+            else if (state.spinsLeft === 1) targetIndex = 3;
+
+            // Calculate rotation
+            const numSegments = PRIZES.length;
+            const segmentAngle = 360 / numSegments;
+            const extraSpins = 360 * 5; // 5 full spins
+            
+            // Target math:
+            // We need target segment at TOP. Pointer is at top.
+            // Wheel rotates clockwise.
+            // To get Index 0 (starts at 0deg) to Top (0deg), we rotate 0.
+            // To get Index 1 (starts at 72deg) to Top, we need to effectively subtract 72deg, or rotate 360 - 72.
+            const targetRotation = (360 - (targetIndex * segmentAngle)) - (segmentAngle / 2);
+            // Add some randomness within segment to not hit line
+            const randomOffset = Math.floor(Math.random() * (segmentAngle - 4)) + 2; 
+            
+            const totalRotation = currentRotation + extraSpins + targetRotation; 
+            
+            // CSS Transform
+            els.wheelSpinner.style.transform = `rotate(${totalRotation}deg)`;
+            currentRotation = totalRotation; // Keep tracking rotation so we don't snap back
+
+            setTimeout(() => {
+                onSpinEnd(targetIndex);
+            }, 5000);
+        }
+
+        function onSpinEnd(targetIndex) {
+            isSpinning = false;
+            
+            const prize = PRIZES[targetIndex];
+            const isGrandPrize = prize.id === 'INVITE';
+
+            // Update State
+            state.spinsLeft--;
+            state.completedSpins++;
+            if (isGrandPrize) {
+                state.hasWonInvite = true;
+                state.winTimestamp = Date.now();
+                startTimer();
+            }
+            saveState();
+            updateUI();
+
+            // Show Modal
+            showModal(prize, isGrandPrize);
+        }
+
+        // --- UI UPDATES ---
+        function updateUI() {
+            els.spinsLeft.textContent = state.spinsLeft;
+            
+            // Toggle screens
+            if (state.hasWonInvite && state.spinsLeft === 0) {
+                // Show Claim Screen
+                els.screenWheel.classList.add('hidden');
+                els.screenClaim.classList.remove('hidden');
+                els.spinsCounterContainer.style.display = 'none';
+            } else {
+                // Show Wheel Screen
+                els.screenWheel.classList.remove('hidden');
+                els.screenClaim.classList.add('hidden');
+                updateSpinButtonState();
+            }
+        }
+
+        function updateSpinButtonState() {
+            if (isSpinning) {
+                els.spinBtn.textContent = 'КРУТИМ...';
+                els.spinBtn.className = 'relative w-full max-w-xs py-4 rounded-xl font-bold text-lg tracking-wider uppercase transition-all duration-300 bg-gray-800 text-gray-500 cursor-not-allowed border border-gray-700';
+            } else if (state.spinsLeft === 0) {
+                els.spinBtn.textContent = 'ПОПЫТКИ ЗАКОНЧИЛИСЬ';
+                els.spinBtn.className = 'relative w-full max-w-xs py-4 rounded-xl font-bold text-lg tracking-wider uppercase transition-all duration-300 bg-gray-800 text-gray-500 cursor-not-allowed border border-gray-700';
+            } else {
+                els.spinBtn.textContent = 'КРУТИТЬ';
+                els.spinBtn.className = 'relative w-full max-w-xs py-4 rounded-xl font-bold text-lg tracking-wider uppercase transition-all duration-300 bg-[#00a3ff] text-white hover:bg-[#008bd9] hover:shadow-[0_0_30px_rgba(0,163,255,0.4)] hover:-translate-y-1 active:translate-y-0 border border-blue-400/20';
+            }
+        }
+
+        // --- MODAL ---
+        function showModal(prize, isGrandPrize) {
+            const isNothing = prize.id === 'NOTHING';
+            
+            // Content
+            els.modalTitle.textContent = isNothing ? 'Не повезло...' : 'ПОЗДРАВЛЯЕМ!';
+            els.modalTitle.className = `text-2xl font-bold mb-4 ${isNothing ? 'text-gray-400' : 'text-white'}`;
+            
+            els.modalPrizeName.textContent = prize.label;
+            els.modalPrizeName.style.color = isGrandPrize ? '#ef4444' : prize.color;
+            
+            if (isGrandPrize) {
+                els.modalGrandMsg.classList.remove('hidden');
+                els.modalRetryMsg.classList.add('hidden');
+                els.modalBtn.textContent = 'ПРОДОЛЖИТЬ';
+            } else {
+                els.modalGrandMsg.classList.add('hidden');
+                els.modalRetryMsg.classList.remove('hidden');
+                els.modalRetryMsg.textContent = isNothing ? 'Попробуйте еще раз! У вас еще есть попытки.' : 'Приз добавлен в ваш инвентарь.';
+                els.modalBtn.textContent = 'КРУТИТЬ ЕЩЕ';
+            }
+
+            els.modal.classList.remove('hidden');
+        }
+
+        function closeModal() {
+            els.modal.classList.add('hidden');
+        }
+
+        // --- TIMER ---
+        function startTimer() {
+            if (timerInterval) clearInterval(timerInterval);
+            
+            const tick = () => {
+                const now = Date.now();
+                const elapsedSeconds = Math.floor((now - state.winTimestamp) / 1000);
+                const remaining = Math.max(0, INITIAL_TIME_SECONDS - elapsedSeconds);
+                
+                const m = Math.floor(remaining / 60).toString().padStart(2, '0');
+                const s = (remaining % 60).toString().padStart(2, '0');
+                
+                els.timerDisplay.textContent = `${m}:${s}`;
+                
+                if (remaining <= 0) {
+                    clearInterval(timerInterval);
+                    els.timerDisplay.textContent = "00:00";
+                    els.timerDisplay.classList.add('text-gray-500');
+                }
+            };
+            
+            tick();
+            timerInterval = setInterval(tick, 1000);
+        }
+
+        // --- UTILS ---
+        function saveState() {
+            localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
+        }
+
+        function resetProgress() {
+            if (confirm("Сбросить прогресс?")) {
+                localStorage.removeItem(STORAGE_KEY);
+                location.reload();
+            }
+        }
+
+        // START
+        init();
+    </script>
+</body>
+</html>
